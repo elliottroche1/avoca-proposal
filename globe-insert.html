@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where we've filmed</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#0a0a0a;color:#fff;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden}
+  .mono{}
+  #insert{display:flex;flex-direction:column;height:100%;width:100%;background:#0a0a0a}
+
+  /* Header: title + stats + live world clocks */
+  #header{display:flex;align-items:stretch;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+  #title{display:flex;flex-direction:column;justify-content:center;gap:6px;min-width:200px}
+  #title .eyebrow{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#999}
+  #title h2{font-size:24px;font-weight:800;letter-spacing:-.5px;color:#fff}
+  #title .stat{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#3b7bff}
+  #clocks{display:grid;grid-template-columns:repeat(6,auto);gap:0;border:1px solid rgba(255,255,255,.08);border-radius:8px;overflow:hidden}
+  .clock{display:flex;flex-direction:column;gap:5px;padding:9px 14px;border-left:1px solid rgba(255,255,255,.06)}
+  .clock:first-child{border-left:0}
+  .clock .lbl{display:flex;align-items:center;gap:5px;;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.42)}
+  .clock .lbl svg{width:12px;height:12px;flex-shrink:0}
+  .clock .t{font-size:15px;font-weight:300;font-variant-numeric:tabular-nums;color:#fff}
+
+  /* Main: globe + sidebar */
+  #main{display:flex;flex:1;min-height:0}
+  #globe-panel{position:relative;flex:1;min-width:0;overflow:hidden;background:#0a0a0a}
+  #globe{position:absolute;inset:0}
+  #reset{position:absolute;top:14px;right:16px;z-index:5;;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:6px 10px;cursor:pointer;display:none}
+  #reset:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+  #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.3);z-index:3}
+
+  /* Pins: PoC monogram flag on a metallic pole (matches the live site) */
+  .pin{position:relative;padding-bottom:40px;cursor:pointer;display:flex;flex-direction:column;align-items:center;perspective:300px;opacity:0;transition:opacity .5s ease}
+  .pin .flagwrap{position:absolute;top:1px;left:50%;width:30px;height:21px}
+  .pin .cloth{position:absolute;inset:0;transform-origin:left center;animation:pocFlagWave var(--dur,6s) ease-in-out infinite;animation-delay:var(--delay,0s);border-radius:2px;overflow:hidden;background:linear-gradient(135deg,#3aa3e2 0%,#2f74bd 52%,#274f95 100%);box-shadow:0 5px 13px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.12);clip-path:polygon(0 0,100% 5%,100% 93%,0 100%)}
+  .pin .sheen{position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 45%);animation:pocFlagSheen var(--dur,6s) ease-in-out infinite;animation-delay:var(--delay,0s)}
+  .pin .mono{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .pin .mono svg{width:12px;height:12px;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.45))}
+  .pin .pole{width:2px;height:40px;border-radius:1px;background:linear-gradient(#eef4fc,#8295ac);box-shadow:0 0 4px rgba(0,0,0,.45)}
+  .pin .finial{position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#eef4fc;box-shadow:0 0 5px rgba(90,169,255,.85)}
+  .pin .plabel{position:absolute;left:50%;top:-18px;transform:translateX(-50%);white-space:nowrap;font-size:10px;font-weight:600;color:#eef4fc;background:rgba(8,14,26,.85);border:1px solid rgba(90,169,255,.35);border-radius:4px;padding:2px 6px;opacity:0;transition:opacity .15s;pointer-events:none}
+  .pin:hover .plabel,.pin.active .plabel{opacity:1}
+  .pin.active .cloth{box-shadow:0 5px 14px rgba(0,0,0,.55),0 0 14px rgba(90,169,255,.5),inset 0 0 0 1px rgba(255,255,255,.18)}
+  @keyframes pocFlagWave{
+    0%{transform:rotateY(-3deg) skewY(2.1deg) scaleX(1);clip-path:polygon(0 0,25% 6%,50% 0,75% 7%,100% 1%,100% 94%,75% 100%,50% 93%,25% 100%,0 95%)}
+    20%{transform:rotateY(-20deg) skewY(-1.4deg) scaleX(.979);clip-path:polygon(0 4%,25% 0,50% 7%,75% 1%,100% 8%,100% 100%,75% 93%,50% 100%,25% 95%,0 100%)}
+    45%{transform:rotateY(-9deg) skewY(2.9deg) scaleX(1);clip-path:polygon(0 7%,25% 1%,50% 8%,75% 0,100% 4%,100% 93%,75% 100%,50% 92%,25% 99%,0 93%)}
+    70%{transform:rotateY(-23deg) skewY(-2.1deg) scaleX(.969);clip-path:polygon(0 1%,25% 7%,50% 1%,75% 8%,100% 2%,100% 96%,75% 100%,50% 95%,25% 100%,0 96%)}
+    100%{transform:rotateY(-3deg) skewY(2.1deg) scaleX(1);clip-path:polygon(0 0,25% 6%,50% 0,75% 7%,100% 1%,100% 94%,75% 100%,50% 93%,25% 100%,0 95%)}
+  }
+  @keyframes pocFlagSheen{0%,100%{opacity:.14;transform:translateX(-14%)}50%{opacity:.42;transform:translateX(14%)}}
+
+  /* Sidebar */
+  #side{display:flex;flex-direction:column;width:330px;flex-shrink:0;background:#0a0a0a;border-left:1px solid rgba(255,255,255,.08)}
+  #searchbox{flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.08);padding:14px 16px}
+  #search{width:100%;background:rgba(255,255,255,.04);border:0;padding:10px 12px;;font-size:12px;letter-spacing:.5px;color:#fff;outline:none;border-radius:4px}
+  #search::placeholder{color:rgba(255,255,255,.3)}
+  #search:focus{background:rgba(255,255,255,.07)}
+  #back{margin-top:12px;display:none;align-items:center;gap:6px;;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.45);background:none;border:0;cursor:pointer}
+  #back:hover{color:#fff}
+  #list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  #list::-webkit-scrollbar{width:8px}
+  #list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+  .region{position:sticky;top:0;z-index:2;background:#0a0a0a;padding:8px 16px;;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.35)}
+  .city{border-bottom:1px solid rgba(255,255,255,.06)}
+  .city.active{background:rgba(255,255,255,.05)}
+  .city-btn{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;text-align:left;background:none;border:0;cursor:pointer}
+  .city-btn .left{display:flex;align-items:center;gap:10px}
+  .city-btn .cdot{height:6px;width:6px;flex-shrink:0;border-radius:50%;background:#3b7bff}
+  .city.active .city-btn .cdot{background:#fff}
+  .city-btn .cname{font-size:15px;font-weight:300;color:#fff;line-height:1}
+  .city-btn .ccountry{;font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35);margin-left:8px}
+  .city-btn .ccount{;font-size:10px;color:rgba(255,255,255,.3)}
+  .projects{display:none;flex-direction:column;gap:1px;padding:0 16px 12px}
+  .city.active .projects{display:flex}
+  .project{display:block;border-left:1px solid rgba(255,255,255,.1);padding:8px 0 8px 12px;text-decoration:none;transition:border-color .2s}
+  .project:hover{border-color:#3b7bff}
+  .project .pclient{;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.4)}
+  .project .pname{font-size:13px;font-weight:300;color:rgba(255,255,255,.9)}
+  .project .pblurb{font-size:11px;line-height:1.4;color:rgba(255,255,255,.45);margin-top:2px}
+  .project .pwatch{;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-top:5px;transition:color .2s}
+  .project:hover .pwatch{color:#3b7bff}
+  #empty{padding:32px 16px;text-align:center;;font-size:11px;letter-spacing:.5px;color:rgba(255,255,255,.3);display:none}
+
+  @media(max-width:680px){
+    html,body{overflow:visible;height:auto}
+    #clocks{grid-template-columns:repeat(3,1fr);width:100%}
+    #insert{height:auto}
+    #main{flex-direction:column}
+    #globe-panel{height:300px;flex:none;touch-action:none}
+    #globe canvas{touch-action:none!important}
+    #side{width:100%;border-left:0;border-top:1px solid rgba(255,255,255,.08);flex:none}
+    #list{flex:none;overflow:visible}
+  }
+</style>
+</head>
+<body>
+<div id="insert">
+  <div id="header">
+    <div id="title">
+      <div class="eyebrow">Based in U.S. &amp; U.K. · Available worldwide</div>
+      <h2>Where we've filmed.</h2>
+      <div class="stat" id="stat"></div>
+    </div>
+    <div id="clocks"></div>
+  </div>
+  <div id="main">
+    <div id="globe-panel">
+      <div id="loading">LOADING GLOBE…</div>
+      <div id="globe"></div>
+      <button id="reset" class="mono">↺ Reset view</button>
+    </div>
+    <aside id="side">
+      <div id="searchbox">
+        <input id="search" placeholder="Search cities, clients, work…" autocomplete="off">
+        <button id="back" class="mono">← Back to all cities</button>
+      </div>
+      <div id="list"></div>
+      <div id="empty">No matches</div>
+    </aside>
+  </div>
+</div>
+
+<script src="https://unpkg.com/globe.gl"></script>
+<script>
+const SITE = "https://www.proofofcoverage.xyz";
+const EAST_AFRICA = [
+  {client:"Solana",project:"DePIN in Africa",href:"/clients/solana#depin-in-africa",blurb:"Mini-doc on Africa's leapfrog to build DePIN on Solana."},
+  {client:"Solana",project:"Onocoy",href:"/clients/solana#onocoy",blurb:"Founder profile on a community-powered, centimeter-precision GNSS network."},
+  {client:"EV3",project:"Scaling DePIN in Africa",href:"/clients/ev3#ev3-depin-africa",blurb:"Field piece on the DePIN movement EV3 is catalyzing across Africa."},
+  {client:"EV3",project:"DePIN Summit Africa",href:"/clients/ev3#event-coverage",blurb:"Behind-the-scenes from the team's time across East Africa."},
+  {client:"Share",project:"A Startup Story",href:"/clients/share#brand-films",blurb:"A 40-minute documentary bringing wireless internet to East Africa."}
+];
+const LEGION = {client:"Legion",project:"Shark Tank Format",href:"/clients/legion#podcast-management",blurb:"Multi-continent shoot for the Shark Tank-style podcast format."};
+const NG = {client:"NationGraph",project:"Embedded Creative Team",href:"/services/residencies",blurb:"Embedded residency: four shoot days a month, building toward a long-form documentary."};
+const CITIES = [
+  {id:"miami",city:"Miami",country:"USA",code:"us",region:"North America",lat:25.7617,lng:-80.1918,projects:[
+    {client:"Superteam USA",project:"Global Domination",href:"/clients/superteam-usa#brand-films",blurb:"DFlow and MoonPay growth leads play Risk to tell the acquisition story."},
+    {client:"Starknet",project:"STRK[20] Product Launch",href:"/clients/starknet#launch-videos",blurb:"Fully AI-generated launch film for Starknet's private DeFi layer."},
+    {client:"Solana",project:"Easy — The Anti-Bank",href:"/clients/solana#portraits",blurb:"Founder profile with Andrew Fisher on settling stablecoins for merchants."},
+    {client:"Solana",project:"Why Now for Crypto Policy",href:"/clients/solana#spi-policy",blurb:"Cinematic short with SPI's Rachel Greenhorn. 55K+ views in week one."},
+    {client:"Superteam USA",project:"Bilal Shahid — Founder Profile",href:"/clients/superteam-usa#portraits",blurb:"Founder profile shot in Miami, building Poof.new."},
+    {client:"Superteam USA",project:"Super Kart: Miami Grand Prix",href:"/clients/superteam-usa#event-coverage",blurb:"PoV recap of the closing event of Solana Accelerate week."},
+    {client:"Superteam USA",project:"Solana Consumer Day",href:"/clients/superteam-usa#consumer-day",blurb:"Comedic event recap skit for Consumer Day coverage."},
+    {client:"Originals",project:"Secret Sunset Beach Party",href:"/originals#secret-sunset",blurb:"A self-funded sunset DJ set, cut like a music video on the sand."},
+    {client:"Solana",project:"Welcome to Miami",href:"/clients/solana#brand-films",blurb:"Solana's official Miami city guide with Dan Jablonski. 60K+ views in week one."},
+    {client:"Superteam USA",project:"SuperPay — Agentic Payments",href:"/clients/superteam-usa#superpay",blurb:"Panel coverage from the Agentic Payments showcase at The LAB."},
+    {client:"Superteam USA",project:"Superteam USA Launch",href:"/clients/superteam-usa#superteam-launch",blurb:"Drone footage and vox pops from the Miami launch event."}
+  ]},
+  {id:"nyc",city:"New York City",country:"USA",code:"us",region:"North America",lat:40.7128,lng:-74.006,projects:[
+    {client:"EV3",project:"Announcing EV3 Fund II",href:"/clients/ev3#brand-films",blurb:"Long-form announcement film for EV3's $62M Fund II close."},
+    {client:"Helium",project:"Helium High Signal",href:"/clients/helium#podcast-management",blurb:"End-to-end podcast management. 1.3M+ views across six episodes."},
+    LEGION,
+    {client:"DAWN",project:"Black Box Launch",href:"/clients/dawn#launch-videos",blurb:"Product launch film shot at the Solana skyline office."},
+    {client:"EV3",project:"DePIN Summit NYC",href:"/clients/ev3#depin-summit-nyc",blurb:"Conference coverage and recap film for EV3's first DePIN Summit."}
+  ]},
+  {id:"san-francisco",city:"San Francisco",country:"USA",code:"us",region:"North America",lat:37.7749,lng:-122.4194,projects:[NG]},
+  {id:"toronto",city:"Toronto",country:"Canada",code:"ca",region:"North America",lat:43.6532,lng:-79.3832,projects:[
+    NG,
+    {client:"MoonPay",project:"DFlow on Coinbase",href:"/clients/moonpay#launch-videos",blurb:"Case study film on DFlow's integration into Coinbase's on-chain Solana stack."}
+  ]},
+  {id:"abu-dhabi",city:"Abu Dhabi",country:"UAE",code:"ae",region:"Asia",lat:24.4539,lng:54.3773,projects:[
+    {client:"Solana",project:"Breakpoint Abu Dhabi",href:"/clients/solana#event-coverage",blurb:"Live clipping at Breakpoint: 73 clips, 3M+ views."},
+    {client:"Helium",project:"Helium House Abu Dhabi",href:"/clients/helium#event-coverage",blurb:"On-site podcast production at Cafe del Mar for 1,100+ attendees."},
+    {client:"Kalshi",project:"Predictify Everything",href:"/clients/kalshi#event-coverage",blurb:"Premier Breakpoint side event at the W Hotel for 300+ leaders."}
+  ]},
+  {id:"mombasa",city:"Mombasa",country:"Kenya",code:"ke",region:"Africa",lat:-4.0435,lng:39.6682,projects:EAST_AFRICA},
+  {id:"zanzibar",city:"Zanzibar",country:"Tanzania",code:"tz",region:"Africa",lat:-6.1659,lng:39.2026,projects:EAST_AFRICA},
+  {id:"arusha",city:"Arusha",country:"Tanzania",code:"tz",region:"Africa",lat:-3.3869,lng:36.683,projects:EAST_AFRICA},
+  {id:"amsterdam",city:"Amsterdam",country:"Netherlands",code:"nl",region:"Europe",lat:52.3676,lng:4.9041,projects:[LEGION]},
+  {id:"london",city:"London",country:"United Kingdom",code:"gb",region:"Europe",lat:51.5074,lng:-0.1278,projects:[LEGION]},
+  {id:"warsaw",city:"Warsaw",country:"Poland",code:"pl",region:"Europe",lat:52.2297,lng:21.0122,projects:[
+    {client:"Starknet",project:"STRK[20] Product Launch",href:"/clients/starknet#launch-videos",blurb:"Fully AI-generated launch film for Starknet's private DeFi layer."},
+    {client:"Starknet",project:"STRK on Solana",href:"/clients/starknet#strk-launch",blurb:"Animated launch for the STRK token. 162K views in week one."}
+  ]},
+  {id:"lisbon",city:"Lisbon",country:"Portugal",code:"pt",region:"Europe",lat:38.7223,lng:-9.1393,projects:[
+    {client:"Originals",project:"Lisbon Marathon",href:"/originals#lisbon-marathon",blurb:"A self-funded original: four founders running 26.2 miles down the Atlantic coast."}
+  ]},
+  {id:"hong-kong",city:"Hong Kong",country:"Hong Kong",code:"hk",region:"Asia",lat:22.3193,lng:114.1694,projects:[
+    {client:"Kraken",project:"Alpaca & xStocks After Hours",href:"/clients/kraken#event-coverage",blurb:"Recap of the after-hours hosted by Kraken with Alpaca and xStocks at Consensus Hong Kong 2026."}
+  ]}
+];
+const REGION_ORDER = ["North America","Europe","Asia","Africa"];
+const uniqueProjects = new Set(CITIES.flatMap(c=>c.projects.map(p=>p.href))).size;
+document.getElementById("stat").textContent = CITIES.length+" Cities · "+new Set(CITIES.map(c=>c.region)).size+" Continents · "+uniqueProjects+" Projects";
+
+// ---------- World clocks ----------
+const ZONES=[
+  {label:"San Francisco",tz:"America/Los_Angeles"},
+  {label:"Miami / NYC",tz:"America/New_York"},
+  {label:"London",tz:"Europe/London"},
+  {label:"East Africa",tz:"Africa/Nairobi"},
+  {label:"Abu Dhabi",tz:"Asia/Dubai"},
+  {label:"Hong Kong",tz:"Asia/Hong_Kong"}
+];
+const SUN='<svg viewBox="0 0 24 24" style="color:#fcd34d;filter:drop-shadow(0 0 3px rgba(252,211,77,.85))"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><line x1="12" y1="1.6" x2="12" y2="3.9"/><line x1="12" y1="20.1" x2="12" y2="22.4"/><line x1="1.6" y1="12" x2="3.9" y2="12"/><line x1="20.1" y1="12" x2="22.4" y2="12"/><line x1="4.5" y1="4.5" x2="6.1" y2="6.1"/><line x1="17.9" y1="17.9" x2="19.5" y2="19.5"/><line x1="19.5" y1="4.5" x2="17.9" y2="6.1"/><line x1="6.1" y1="17.9" x2="4.5" y2="19.5"/></g></svg>';
+const MOON='<svg viewBox="0 0 24 24" style="color:rgba(255,255,255,.85);filter:drop-shadow(0 0 3px rgba(255,255,255,.7))"><path d="M20.5 13.4A7.5 7.5 0 1 1 10.6 3.5a6 6 0 0 0 9.9 9.9Z" fill="currentColor"/></svg>';
+const clocksEl=document.getElementById("clocks");
+clocksEl.innerHTML=ZONES.map((z,i)=>'<div class="clock"><div class="lbl" id="cl-ic-'+i+'"></div><div class="t" id="cl-t-'+i+'">··:·· --</div></div>').join("");
+function tickClocks(){
+  const now=new Date();
+  ZONES.forEach((z,i)=>{
+    const time=new Intl.DateTimeFormat("en-US",{timeZone:z.tz,hour:"numeric",minute:"2-digit",second:"2-digit",hour12:true}).format(now);
+    const h=Number(new Intl.DateTimeFormat("en-GB",{timeZone:z.tz,hour:"2-digit",hourCycle:"h23"}).format(now));
+    const isDay=h>=6&&h<18;
+    document.getElementById("cl-ic-"+i).innerHTML=(isDay?SUN:MOON)+'<span>'+z.label+'</span>';
+    document.getElementById("cl-t-"+i).textContent=time;
+  });
+}
+tickClocks(); setInterval(tickClocks,1000);
+
+// ---------- Globe ----------
+let pinnedId=null,revealed=false;
+const pinEls=new Map();
+const MONO='<svg viewBox="0 0 155 155"><path d="M77.4941 0C34.6931 0 0 34.6957 0 77.5V155H31.5647V77.5V77.3008C31.6702 52.0143 52.1861 31.5555 77.4941 31.5555C102.802 31.5555 123.435 52.1197 123.435 77.5C123.435 102.88 102.872 123.445 77.4941 123.445V99.5876C89.6912 99.5876 99.5801 89.698 99.5801 77.5C99.5801 65.302 89.6912 55.4124 77.4941 55.4124C65.2971 55.4124 55.4199 65.302 55.4082 77.4883V155H77.4941C120.295 155 155 120.304 155 77.5C155 34.6957 120.307 0 77.4941 0Z" fill="#fff"/></svg>';
+const FDUR=[5.2,6.4,5.6,7.0,6.0],FDELAY=[0,1.1,0.5,1.7,0.8];
+const globeEl=document.getElementById("globe");
+const world=Globe()(globeEl)
+  .globeImageUrl("https://www.proofofcoverage.xyz/textures/earth-blue-marble.jpg")
+  .bumpImageUrl("https://unpkg.com/three-globe/example/img/earth-topology.png")
+  .backgroundColor("rgba(0,0,0,0)")
+  .showAtmosphere(false)
+  .htmlElementsData(CITIES)
+  .htmlLat(d=>d.lat).htmlLng(d=>d.lng).htmlAltitude(0.004)
+  .htmlElement(d=>{
+    const el=document.createElement("div");
+    el.className="pin";
+    const k=CITIES.indexOf(d)%5;
+    el.style.setProperty("--dur",FDUR[k]+"s");
+    el.style.setProperty("--delay",FDELAY[k]+"s");
+    el.innerHTML='<div class="flagwrap"><div class="cloth"><div class="sheen"></div><div class="mono">'+MONO+'</div></div></div><div class="pole"></div><div class="finial"></div><div class="plabel">'+d.city+'</div>';
+    el.addEventListener("click",ev=>{ev.stopPropagation();selectCity(d.id,true);});
+    pinEls.set(d.id,el);
+    return el;
+  })
+  .htmlElementVisibilityModifier((el,isVisible)=>{const show=revealed&&isVisible;el.style.opacity=show?1:0;el.style.pointerEvents=show?"auto":"none";});
+
+// Match the site's vivid, evenly-lit globe: render the exact site day texture
+// mostly self-lit so the oceans stay a deep saturated blue (not gray/dark).
+function applyEmissive(){
+  try{
+    const mat=world.globeMaterial();
+    if(mat&&mat.map){mat.emissiveMap=mat.map;mat.emissive.setRGB(0.92,0.92,0.92);mat.emissiveIntensity=1;mat.needsUpdate=true;}
+  }catch(e){}
+}
+world.onGlobeReady(applyEmissive);
+setTimeout(applyEmissive,1500);setTimeout(applyEmissive,3200);
+
+function sizeGlobe(){const p=document.getElementById("globe-panel");world.width(p.clientWidth).height(p.clientHeight);}
+sizeGlobe();
+new ResizeObserver(sizeGlobe).observe(document.getElementById("globe-panel"));
+
+const isMobile=()=>window.innerWidth<=680;
+// On mobile the insert flows as normal page content: tell the parent its height
+// so the iframe grows to fit (no internal scroll trap), and let touches scroll.
+function postHeight(){try{if(isMobile())parent.postMessage({pocGlobeHeight:document.getElementById("insert").scrollHeight+4},"*");}catch(e){}}
+const controls=world.controls();
+// Globe draggable everywhere. On mobile the canvas is touch-action:none, so a drag
+// that STARTS on the globe rotates it in any direction (pointer-captured, even as the
+// finger leaves the globe) and never scrolls the page; scroll from off-globe (header/sidebar).
+controls.enabled=true;
+controls.autoRotate=false;
+controls.autoRotateSpeed=0.42;
+controls.enableZoom=true;controls.minDistance=180;controls.maxDistance=520;
+// Intro: start west of North America, slow-spin in, THEN the flags pop up.
+world.pointOfView({lat:39,lng:-150,altitude:2.7},0);
+setTimeout(()=>world.pointOfView({lat:39,lng:-98,altitude:2.5},2400),150);
+setTimeout(()=>{revealed=true;controls.autoRotate=true;},2550);
+setTimeout(()=>{document.getElementById("loading").style.display="none";},700);
+
+// Click empty globe space -> deselect and resume spinning.
+globeEl.addEventListener("click",()=>{ if(pinnedId) clearSelection(); });
+// Dragging/rotating the globe surfaces the Reset button (same as selecting a city).
+controls.addEventListener("start",()=>{ document.getElementById("reset").style.display="block"; });
+
+// ---------- Sidebar ----------
+const listEl=document.getElementById("list"),emptyEl=document.getElementById("empty"),searchEl=document.getElementById("search"),backBtn=document.getElementById("back"),resetBtn=document.getElementById("reset");
+const cityRowEls=new Map();
+function projectHTML(p){const url=SITE+p.href;return '<a class="project" href="'+url+'" target="_blank" rel="noopener"><div class="pclient">'+p.client+'</div><div class="pname">'+p.project+'</div><div class="pblurb">'+p.blurb+'</div><div class="pwatch">WATCH →</div></a>';}
+function render(filter){
+  filter=(filter||"").trim().toLowerCase();
+  cityRowEls.clear();let html="",any=false;
+  for(const region of REGION_ORDER){
+    const cities=CITIES.filter(c=>c.region===region).filter(c=>{
+      if(!filter)return true;
+      return (c.city+" "+c.country+" "+c.projects.map(p=>p.client+" "+p.project+" "+p.blurb).join(" ")).toLowerCase().includes(filter);
+    });
+    if(!cities.length)continue;any=true;
+    html+='<div class="region">'+region+'</div>';
+    for(const c of cities){
+      html+='<div class="city" data-id="'+c.id+'"><button class="city-btn" data-id="'+c.id+'"><span class="left"><span class="cdot"></span><span><span class="cname">'+c.city+'</span><span class="ccountry">'+c.country+'</span></span></span><span class="ccount">'+c.projects.length+'</span></button><div class="projects">'+c.projects.map(projectHTML).join("")+'</div></div>';
+    }
+  }
+  listEl.innerHTML=html;emptyEl.style.display=any?"none":"block";
+  listEl.querySelectorAll(".city").forEach(el=>cityRowEls.set(el.dataset.id,el));
+  listEl.querySelectorAll(".city-btn").forEach(btn=>btn.addEventListener("click",()=>selectCity(btn.dataset.id,true)));
+  if(pinnedId&&cityRowEls.has(pinnedId))cityRowEls.get(pinnedId).classList.add("active");
+}
+function selectCity(id,fly){
+  const c=CITIES.find(x=>x.id===id);if(!c)return;
+  pinnedId=id;controls.autoRotate=false;
+  if(isMobile()){
+    render(searchEl.value);                              // rebuild the grouped list with this city active...
+    const r=cityRowEls.get(id);if(r)listEl.prepend(r);   // ...then pop it to the TOP so it shows right below the globe
+  }else{
+    cityRowEls.forEach((el,k)=>el.classList.toggle("active",k===id));
+    const row=cityRowEls.get(id);if(row)row.scrollIntoView({block:"nearest"});
+  }
+  pinEls.forEach((el,k)=>el.classList.toggle("active",k===id));
+  backBtn.style.display="flex";resetBtn.style.display="block";
+  if(fly)world.pointOfView({lat:c.lat,lng:c.lng,altitude:1.6},900);
+  postHeight();
+}
+function clearSelection(){
+  pinnedId=null;controls.autoRotate=true;
+  pinEls.forEach(el=>el.classList.remove("active"));
+  if(isMobile())render(searchEl.value);                  // restore the original grouped order
+  else cityRowEls.forEach(el=>el.classList.remove("active"));
+  backBtn.style.display="none";resetBtn.style.display="none";
+  postHeight();
+}
+function resetView(){clearSelection();world.pointOfView({lat:39,lng:-98,altitude:2.5},900);}
+searchEl.addEventListener("input",()=>{render(searchEl.value);postHeight();});
+backBtn.addEventListener("click",clearSelection);
+resetBtn.addEventListener("click",resetView);
+render("");
+window.addEventListener("resize",()=>{postHeight();});
+setTimeout(postHeight,400);setTimeout(postHeight,1400);
+</script>
+</body>
+</html>
